@@ -4,34 +4,34 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Purpose
 
-A learning project following the Next.js [React Foundations](https://nextjs.org/learn/react-foundations) course. The course starts from a single HTML file that loads React and Babel from a CDN, then incrementally migrates the same app to Next.js (installing `next`/`react`/`react-dom`, moving markup into `app/page.js`, adding components, props, state, and finally server vs. client components).
+A learning project following the Next.js [React Foundations](https://nextjs.org/learn/react-foundations) course. The course starts from a single HTML file loading React and Babel from a CDN, then incrementally migrates the same app to Next.js.
 
-Because the course is incremental, the toolchain here changes as the project progresses. When adding code, follow the stage the course is at rather than jumping ahead to a full framework setup.
+The migration is complete: the project is now a Next.js App Router app, and the course has reached its final chapter, "Server and Client Components". `index.html` is gone; its markup lives in `app/page.js`.
 
-## Current stage
+Because the project tracks a tutorial, prefer the course's incremental approach over introducing tooling it never covers (no TypeScript, linter, test runner, or CSS framework has been added).
 
-Through "Displaying Data with Props" — still the pre-Next.js, CDN-only stage.
-
-## Running
-
-No package manifest, no build step, no tests. Open the file directly:
+## Commands
 
 ```
-open index.html
+npm run dev      # the only defined script — Next.js dev server on :3000
 ```
 
-Everything is compiled in the browser at load time; there is nothing to install and no dev server.
+There is no `build`, `start`, `lint`, or `test` script in `package.json`, and no test runner is installed. Use `npx next build` if you need a production build.
 
 ## Architecture
 
-`index.html` is the entire application:
+Next.js 16 App Router (Turbopack) with React 19. Three files make up the whole app:
 
-- An **import map** in `<head>` resolves bare specifiers (`react`, `react-dom/client`, `react/jsx-runtime`) to `https://esm.sh/...?dev` builds.
-- **Babel standalone** from unpkg compiles the inline `<script type="text/babel" data-type="module" data-presets="react">` block in the browser. The `data-type="module"` attribute is what makes the import map apply; without it the `import` statements fail.
-- All components live as plain functions inside that single inline script, which ends by mounting `<HomePage />` into `#app` via `createRoot`.
+- `app/layout.js` — root layout exporting `metadata` and the `<html>`/`<body>` shell. Required by the App Router; every page renders as its `children`.
+- `app/page.js` — the `/` route. A **server component** (no directive), holding both `HomePage` and a local `Header` component.
+- `app/like-button.js` — the **only client component**, marked `'use client'`. It exists solely because `useState` requires the client boundary; `page.js` stays a server component and imports it.
 
-When the course reaches the Next.js migration, this file gets replaced by a real project (`package.json`, `app/`), and this section should be rewritten with the actual `next dev` / `next build` commands.
+That server/client split is the point of the current course chapter — keep interactive state in `like-button.js` (or new `'use client'` files) rather than adding `'use client'` to `page.js`.
+
+## Repo hygiene
+
+`.gitignore` contains only `node_modules`, so the `.next/` build directory is committed — the "Installing Next.js" commit added ~173k lines of generated output, and dev-server runs keep dirtying the working tree. Adding `.next` to `.gitignore` (and `git rm -r --cached .next`) is worth doing before the next commit.
 
 ## Commit convention
 
-One commit per course section, with the section's title as the message (e.g. "Displaying Data with Props").
+One commit per course section, with the section's title as the message (e.g. "Server and Client Components").
